@@ -91,7 +91,9 @@
 /* END USAGE */
 
 (() => {
-  const STATE_FILE = '.image-slots.state.json';
+  // Renamed from '.image-slots.state.json': GitHub Pages (Jekyll) refuses to
+  // serve dotfiles, which 404'd the sidecar and blanked every image slot.
+  const STATE_FILE = 'image-slots.state.json';
 
   // Unsplash terms require visible attribution wherever their photos
   // display, and every link back to unsplash.com must carry utm referral
