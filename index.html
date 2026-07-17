@@ -64,8 +64,8 @@
   </div>
 
   <!-- progressive glass edges -->
-  <div style="position:fixed; top:0; left:0; right:0; height:130px; z-index:8; pointer-events:none; backdrop-filter:blur(12px) saturate(140%); -webkit-backdrop-filter:blur(12px) saturate(140%); -webkit-mask-image:linear-gradient(180deg, #000 0%, #000 35%, transparent 100%); mask-image:linear-gradient(180deg, #000 0%, #000 35%, transparent 100%); background:linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 100%); opacity: {{ edgeBlurOp }}; transition:opacity 0.6s ease"></div>
-  <div style="position:fixed; bottom:0; left:0; right:0; height:110px; z-index:8; pointer-events:none; backdrop-filter:blur(12px) saturate(140%); -webkit-backdrop-filter:blur(12px) saturate(140%); -webkit-mask-image:linear-gradient(0deg, #000 0%, #000 35%, transparent 100%); mask-image:linear-gradient(0deg, #000 0%, #000 35%, transparent 100%); background:linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 100%); opacity: {{ bottomBlurOp }}; transition:opacity 0.6s ease"></div>
+  <div style="position:fixed; top:0; left:0; right:0; height:130px; z-index:8; pointer-events:none; background:linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0) 100%); opacity: {{ edgeBlurOp }}; transition:opacity 0.6s ease"></div>
+  <div style="position:fixed; bottom:0; left:0; right:0; height:110px; z-index:8; pointer-events:none; background:linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.24) 45%, rgba(0,0,0,0) 100%); opacity: {{ bottomBlurOp }}; transition:opacity 0.6s ease"></div>
 
   <!-- mobile menu overlay -->
   <div style="position:fixed; inset:0; z-index:9; background:#000; opacity: {{ mOp }}; visibility: {{ menuVis }}; pointer-events: {{ menuPointer }}; transition:opacity 0.5s cubic-bezier(0.22,1,0.36,1), visibility 0.5s; display:flex; flex-direction:column; justify-content:flex-end; padding:96px 24px 36px; box-sizing:border-box">
@@ -468,17 +468,21 @@ class Component extends DCLogic {
               const off = (r.top + r.height / 2 - vh / 2) / vh;
               slot.style.transform = 'scale(1.12) translateY(' + (off * 3.5).toFixed(2) + '%)';
             });
+            // Reel resize rides the same frame: scroll events can fire
+            // several times per frame, and resizing here (width/height force
+            // layout) once per frame instead of once per event is what keeps
+            // Chrome scrolling smooth.
+            const reel = el.querySelector('[data-reel]');
+            if (reel) {
+              const sec = reel.parentElement;
+              // progress 0 -> 1 as the reel section travels into view
+              const p = Math.max(0, Math.min(1, 1 - (sec.offsetTop - el.scrollTop) / vh));
+              const ease = p * p * (3 - 2 * p); // smoothstep
+              reel.style.width = (62 + 38 * ease) + '%';
+              reel.style.height = (62 + 38 * ease) + 'vh';
+              reel.style.borderRadius = (20 * (1 - ease)) + 'px';
+            }
           });
-        }
-        const reel = el.querySelector('[data-reel]');
-        if (reel) {
-          const sec = reel.parentElement;
-          // progress 0 -> 1 as the reel section travels into view
-          const p = Math.max(0, Math.min(1, 1 - (sec.offsetTop - el.scrollTop) / el.clientHeight));
-          const ease = p * p * (3 - 2 * p); // smoothstep
-          reel.style.width = (62 + 38 * ease) + '%';
-          reel.style.height = (62 + 38 * ease) + 'vh';
-          reel.style.borderRadius = (20 * (1 - ease)) + 'px';
         }
       };
       this._onScroll();
