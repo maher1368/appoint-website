@@ -4,7 +4,11 @@
     {
       "name": "static-site",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8743"],
+      "runtimeArgs": [
+        "-S",
+        "-c",
+        "import sys; sys.path = [p for p in sys.path if p]; import http.server, functools; h = functools.partial(http.server.SimpleHTTPRequestHandler, directory='/Users/mohammadmaher/Documents/Appoint/Landing/Claude code'); http.server.ThreadingHTTPServer(('127.0.0.1', 8743), h).serve_forever()"
+      ],
       "port": 8743
     }
   ]
