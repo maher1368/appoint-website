@@ -380,7 +380,7 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;snapScroll&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;revealAnimation&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;wordInterval&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 2600, &quot;min&quot;: 1200, &quot;max&quot;: 6000, &quot;step&quot;: 200, &quot;unit&quot;: &quot;ms&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;reelUrl&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Showreel&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;snapScroll&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;revealAnimation&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;wordInterval&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 2600, &quot;min&quot;: 1200, &quot;max&quot;: 6000, &quot;step&quot;: 200, &quot;unit&quot;: &quot;ms&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;reelUrl&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;assets/demo-reel.mp4&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Showreel&quot;}}">
 class Component extends DCLogic {
   state = { wordIdx: 0, openAcc: -1, scrolled: false, scrolledAny: false, atEnd: false, isMobile: false, menuOpen: false };
 
@@ -660,8 +660,18 @@ class Component extends DCLogic {
         const v = e.currentTarget.querySelector('[data-reel-video]');
         const ov = e.currentTarget.querySelector('[data-reel-overlay]');
         if (!v) return;
-        if (v.paused) { v.play(); if (ov) ov.style.opacity = '0'; }
-        else { v.pause(); if (ov) ov.style.opacity = '1'; }
+        const overlay = (on) => { if (ov) ov.style.opacity = on ? '1' : '0'; };
+        if (v.muted) {
+          // Silent looping preview -> full playback with sound, from the top.
+          // When the full video ends, drop back to the muted loop.
+          if (!v._onEnded) {
+            v._onEnded = () => { v.muted = true; v.loop = true; v.currentTime = 0; v.play(); overlay(true); };
+            v.addEventListener('ended', v._onEnded);
+          }
+          v.muted = false; v.loop = false; v.currentTime = 0;
+          v.play(); overlay(false);
+        } else if (v.paused) { v.play(); overlay(false); }
+        else { v.pause(); overlay(true); }
       },
       typoOpacity: scrolled ? '0' : '1',
       typoBlur: scrolled ? '10px' : '0px',
