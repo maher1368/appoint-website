@@ -13,6 +13,11 @@
       this._started = true;
       this.style.display = 'block';
       this.style.overflow = 'hidden';
+      // Fill the positioned wrapper the DC runtime mounts imports into —
+      // with auto height the element collapses to the canvas fallback size
+      // and the whole wave field renders in a shallow strip at the top.
+      this.style.width = '100%';
+      this.style.height = '100%';
       this._mouse = { x: 0, y: 0 };
       this._count = 0;
       this._visible = true;
