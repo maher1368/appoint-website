@@ -380,7 +380,7 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;snapScroll&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;revealAnimation&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;wordInterval&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 2600, &quot;min&quot;: 1200, &quot;max&quot;: 6000, &quot;step&quot;: 200, &quot;unit&quot;: &quot;ms&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;reelUrl&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;assets/demo-reel.mp4&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Showreel&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;snapScroll&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;revealAnimation&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;wordInterval&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 2600, &quot;min&quot;: 1200, &quot;max&quot;: 6000, &quot;step&quot;: 200, &quot;unit&quot;: &quot;ms&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;reelUrl&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;assets/demo-reel.mp4&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Showreel&quot;}, &quot;reelUrlMobile&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;assets/demo-reel-vertical.mp4&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Showreel&quot;}}">
 class Component extends DCLogic {
   state = { wordIdx: 0, openAcc: -1, scrolled: false, scrolledAny: false, atEnd: false, isMobile: false, menuOpen: false };
 
@@ -427,7 +427,17 @@ class Component extends DCLogic {
 
   _syncReelSrc() {
     const v = document.querySelector('[data-reel-video]');
-    if (v && this.props.reelUrl && v.getAttribute('src') !== this.props.reelUrl) v.src = this.props.reelUrl;
+    if (!v) return;
+    const url = (this.state.isMobile && this.props.reelUrlMobile) ? this.props.reelUrlMobile : this.props.reelUrl;
+    if (url && v.getAttribute('src') !== url) {
+      v.src = url;
+      // A source swap (mobile <-> desktop breakpoint) restarts as the
+      // muted loop preview, same as the initial state.
+      v.muted = true; v.loop = true;
+      if (v.play) v.play().catch(() => {});
+      const ov = document.querySelector('[data-reel-overlay]');
+      if (ov) ov.style.opacity = '1';
+    }
   }
 
   componentDidUpdate() {
